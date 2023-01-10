@@ -5,14 +5,14 @@ const Card = require('../models/cardModel')
 const User = require('../models/userModel')
 
 const createSet = asyncHandler(async (req, res) => {
-    const user = User.findById(req.params.userId)
+    const user = User.findById(req.user._id)
 
     if (!user) {
         res.status(400)
         throw new Error('User not found')
     }
 
-    req.body.user = req.params.userId
+    req.body.user = req.user._id
 
     const set = await Set.create(req.body)
 
@@ -20,7 +20,12 @@ const createSet = asyncHandler(async (req, res) => {
 })
 
 const getSets = asyncHandler(async (req, res) => {
-    const sets = await Set.find({ user: req.params.userId })
+    const sets = await Set.find()
+
+    sets.forEach(async (set) => {
+        const user = await User.findById(set.user)
+        set.user = user;
+    })
 
     res.status(200).json(sets)
 })
@@ -52,6 +57,12 @@ const updateSet = asyncHandler(async (req, res) => {
         throw new Error('User not found')
     }
 
+    // Check if user is the owner
+    if (req.user._id != set.user) {
+        res.status(403)
+        throw new Error('Logged user is not the owner.')
+    }
+
     const updatedSet = await Set.findByIdAndUpdate(req.params.id, req.body, {
         new: true,
     })
@@ -74,11 +85,19 @@ const deleteSet = asyncHandler(async (req, res) => {
         throw new Error('User not found')
     }
 
+    // Check if user is the owner
+    if (req.user._id != set.user) {
+        res.status(403)
+        throw new Error('Logged user is not the owner.')
+    }
+
     const deletedCards = await Card.deleteMany({ set: req.params.id })
 
     const deletedSet = await Set.findByIdAndDelete(req.params.id)
 
-    res.status(200).json(deletedSet + deletedCards)
+    deletedSet.cards = deletedCards
+
+    res.status(200).json(deletedSet)
 })
 
 module.exports = {

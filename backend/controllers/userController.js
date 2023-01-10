@@ -3,6 +3,7 @@ const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 
 const User = require('../models/userModel')
+const Set = require('../models/setModel')
 
 const registerUser = asyncHandler(async (req, res) => {
     const { email, password } = req.body
@@ -17,7 +18,7 @@ const registerUser = asyncHandler(async (req, res) => {
     const userExists = await User.findOne({ email })
 
     if (userExists) {
-        res.status(400)
+        res.status(409)
         throw new Error('Email already used.')
     }
 
@@ -30,10 +31,10 @@ const registerUser = asyncHandler(async (req, res) => {
 
     if (newUser) {
         res.status(201).json({
-            _id: newUser._id,
+            id: newUser._id,
             email: newUser.email,
             name: newUser.name,
-            token: generateToken(newUser._id),
+            token: generateToken(newUser._id)
         })
     } else {
         res.status(400)
@@ -42,24 +43,19 @@ const registerUser = asyncHandler(async (req, res) => {
 })
 
 const loginUser = asyncHandler(async (req, res) => {
+
     const { email, password } = req.body
 
     // Check for user email
     const user = await User.findOne({ email })
 
     if (user && (await bcrypt.compare(password, user.password))) {
-        res.cookie("logged-user", {
-            id: user.id,
+        res.status(200).json({
+            id: user._id,
             name: user.name,
             email: user.email,
-            token: generateToken(user._id),
-        },{
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: 'strict'
+            token: generateToken(user._id)
         })
-        .status(200)
-        .json({message: "Logged in successfully"})
     } else {
         res.status(400)
         throw new Error('Invalid credentials')
@@ -74,10 +70,27 @@ const getUser = asyncHandler(async (req, res) => {
         throw new Error('User not found')
     }
 
+    const sets = await Set.find({user: user._id})
+
     res.status(200).json({
-        id: user._id,
-        name: user.name
+        user: {
+            id: user._id,
+            name: user.name,
+        }
     })
+})
+
+const getUserSets = asyncHandler(async (req, res) => {
+    const user = await User.findById(req.params.id)
+
+    if (!user.name) {
+        res.status(400)
+        throw new Error('User not found')
+    }
+
+    const sets = await Set.find({ user: user._id })
+
+    res.status(200).json(sets)
 })
 
 const generateToken = (id) => {
@@ -86,8 +99,10 @@ const generateToken = (id) => {
     })
 }
 
+
 module.exports = {
     getUser,
+    getUserSets,
     registerUser,
     loginUser,
 }

@@ -11,11 +11,17 @@ const createCard = asyncHandler(async (req, res) => {
         throw new Error('Set not found')
     }
 
-    // // Check for user
-    // if (!req.user) {
-    //     res.status(401)
-    //     throw new Error('User not found')
-    // }
+    // Check for user
+    if (!req.user) {
+        res.status(401)
+        throw new Error('User not found')
+    }
+
+    // Check if user is the owner
+    if (req.user._id != set.user) {
+        res.status(403)
+        throw new Error('Logged user is not the owner.')
+    }
 
     // attach set information
     req.body.set = req.params.setId;
@@ -38,17 +44,6 @@ const getCards = asyncHandler(async (req, res) => {
     res.status(200).json(cards)
 })
 
-const getCard = asyncHandler(async (req, res) => {
-    const cards = await Card.findById(req.params.id)
-
-    if (!card) {
-        res.status(400)
-        throw new Error('Card not found')
-    }
-
-    res.status(200).json(cards)
-})
-
 const updateCard = asyncHandler(async (req, res) => {
     const card = await Card.findById(req.params.id)
 
@@ -57,10 +52,18 @@ const updateCard = asyncHandler(async (req, res) => {
         throw new Error('Card not found')
     }
 
+    const set = await Set.findById(card.set)
+
     // Check for user
     if (!req.user) {
         res.status(401)
         throw new Error('User not found')
+    }
+
+    // Check if user is the owner
+    if (req.user._id != set.user) {
+        res.status(403)
+        throw new Error('Logged user is not the owner.')
     }
 
     const updatedCard = await Card.findByIdAndUpdate(req.params.id, req.body, {
@@ -78,10 +81,18 @@ const deleteCard = asyncHandler(async (req, res) => {
         throw new Error('Card not found')
     }
 
+    const set = await Set.findById(card.set)
+
     // Check for user
     if (!req.user) {
         res.status(401)
         throw new Error('User not found')
+    }
+
+    // Check if user is the owner
+    if (req.user._id != set.user) {
+        res.status(403)
+        throw new Error('Logged user is not the owner.')
     }
 
     const deletedCard = await Card.findByIdAndDelete(req.params.id)
@@ -92,7 +103,6 @@ const deleteCard = asyncHandler(async (req, res) => {
 module.exports = {
     createCard,
     getCards,
-    getCard,
     updateCard,
     deleteCard,
 }

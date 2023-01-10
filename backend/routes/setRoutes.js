@@ -11,12 +11,11 @@ const {
 
 const card = require('./cardRoutes')
 
-router.route('/').get(getSets).post(createSet)
-router
-    .route('/:id')
+router.route('/').post(protect, createSet).get(getSets)
+router.route('/:id')
     .get(getSet)
-    .put(updateSet)
-    .delete(deleteSet)
+    .put(protect, updateSet)
+    .delete(protect, deleteSet)
 
 router.use('/:setId/cards', card)
 
