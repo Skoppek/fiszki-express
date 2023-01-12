@@ -17,14 +17,6 @@ const createCard = asyncHandler(async (req, res) => {
     throw new Error("User not found");
   }
 
-  // Check if user is the owner
-  //   if (req.user._id != set.user) {
-  //     res.status(403);
-  //     throw new Error(
-  //       `Logged user is not the owner. ${req.user._id} + ${set.user}`
-  //     );
-  //   }
-
   // attach set information
   req.body.set = req.params.setId;
 

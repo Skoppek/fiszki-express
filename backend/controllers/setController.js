@@ -22,11 +22,6 @@ const createSet = asyncHandler(async (req, res) => {
 const getSets = asyncHandler(async (req, res) => {
   const sets = await Set.find().populate("user");
 
-  //   sets.forEach((set, i) => {
-  //     const user = User.findById(set.user);
-  //     sets[i].user = user;
-  //   });
-
   res.status(200).json(sets);
 });
 

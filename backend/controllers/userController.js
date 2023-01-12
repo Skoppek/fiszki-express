@@ -31,10 +31,12 @@ const registerUser = asyncHandler(async (req, res) => {
 
   if (newUser) {
     res.status(201).json({
-      id: newUser._id,
-      email: newUser.email,
-      name: newUser.name,
-      token: generateToken(newUser._id),
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+      },
+      token: generateToken(user._id),
     });
   } else {
     res.status(400);
@@ -50,13 +52,15 @@ const loginUser = asyncHandler(async (req, res) => {
 
   if (user && (await bcrypt.compare(password, user.password))) {
     res.status(200).json({
-      id: user._id,
-      name: user.name,
-      email: user.email,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+      },
       token: generateToken(user._id),
     });
   } else {
-    res.status(400);
+    res.status(401);
     throw new Error("Invalid credentials");
   }
 });
