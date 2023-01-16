@@ -38,18 +38,10 @@ const updateCard = asyncHandler(async (req, res) => {
     throw new Error("Card not found");
   }
 
-  const set = await Set.findById(card.set);
-
   // Check for user
   if (!req.user) {
     res.status(401);
     throw new Error("User not found");
-  }
-
-  // Check if user is the owner
-  if (req.user._id != set.user) {
-    res.status(403);
-    throw new Error("Logged user is not the owner.");
   }
 
   const updatedCard = await Card.findByIdAndUpdate(req.params.id, req.body, {
@@ -67,18 +59,10 @@ const deleteCard = asyncHandler(async (req, res) => {
     throw new Error("Card not found");
   }
 
-  const set = await Set.findById(card.set);
-
   // Check for user
   if (!req.user) {
     res.status(401);
     throw new Error("User not found");
-  }
-
-  // Check if user is the owner
-  if (req.user._id != set.user) {
-    res.status(403);
-    throw new Error("Logged user is not the owner.");
   }
 
   const deletedCard = await Card.findByIdAndDelete(req.params.id);
